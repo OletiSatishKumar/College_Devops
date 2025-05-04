@@ -1,0 +1,107 @@
+pipeline {
+    agent any
+
+    environment {
+        GIT_REPO_URL = 'https://github.com/OletiSatishKumar/College_Devops.git'
+        DOCKER_CREDENTIALS = 'Docker_Cred'  
+        DOCKER_REGISTRY = 'satishosk'   
+        DOCKER_IMAGE_BACKEND = "${DOCKER_REGISTRY}/college-management-backend:${BUILD_NUMBER}"
+        DOCKER_IMAGE_FRONTEND = "${DOCKER_REGISTRY}/college-management-frontend:${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                script {
+                    try {
+                        checkout scm
+                        echo '✅ Code cloned successfully from GitHub.'
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE'
+                        error "❌ Code cloning failed: ${e.getMessage()}"
+                    }
+                }
+            }
+        }
+
+        stage('Build Backend Docker Image') {
+            steps {
+                script {
+                    try {
+                        // Build the backend Docker image
+                        echo '🔨 Building backend Docker image...'
+                        docker.build("${DOCKER_IMAGE_BACKEND}", "server/")
+                        echo '✅ Backend Docker image built successfully.'
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE'
+                        error "❌ Backend Docker build failed: ${e.getMessage()}"
+                    }
+                }
+            }
+        }
+
+        stage('Build Frontend Docker Image') {
+            steps {
+                script {
+                    try {
+                        // Build the frontend Docker image
+                        echo '🔨 Building frontend Docker image...'
+                        docker.build("${DOCKER_IMAGE_FRONTEND}", "client/")
+                        echo '✅ Frontend Docker image built successfully.'
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE'
+                        error "❌ Frontend Docker build failed: ${e.getMessage()}"
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Images to Docker Hub') {
+            steps {
+                script {
+                    try {
+                        // Log in to Docker Hub
+                        echo '🔑 Logging in to Docker Hub...'
+                        withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                            sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                        }
+
+                        // Push the backend image to Docker Hub
+                        echo '🚀 Pushing backend image to Docker Hub...'
+                        sh "docker push ${DOCKER_IMAGE_BACKEND}"
+
+                        // Push the frontend image to Docker Hub
+                        echo '🚀 Pushing frontend image to Docker Hub...'
+                        sh "docker push ${DOCKER_IMAGE_FRONTEND}"
+
+                        echo '✅ Docker images pushed to Docker Hub successfully.'
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE'
+                        error "❌ Docker push failed: ${e.getMessage()}"
+                    }
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    // Clean up local Docker images after pushing to Docker Hub
+                    echo '🧹 Cleaning up local Docker images...'
+                    sh "docker rmi ${DOCKER_IMAGE_BACKEND}"
+                    sh "docker rmi ${DOCKER_IMAGE_FRONTEND}"
+                    echo '✅ Local Docker images removed.'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '🎉 Docker images have been successfully built and pushed to Docker Hub!'
+        }
+        failure {
+            echo '❌ There was an issue with the Docker image build or push process.'
+        }
+    }
+}
