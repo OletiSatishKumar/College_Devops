@@ -6,11 +6,11 @@ This project implements a college management system using a microservices archit
 
 ## Project Structure
 
-* **backend/**: Java Spring Boot application
+* **server/**: Java Spring Boot application
 
   * Contains business logic and API endpoints
   * Dockerized with a `Dockerfile`
-* **frontend/**: React application
+* **client/**: React application
 
   * Provides the UI for the system
   * Dockerized with a `Dockerfile`
@@ -100,15 +100,3 @@ This project implements a college management system using a microservices archit
      ```bash
      kubectl apply -f k8s/dev/
      ```
-
-## Jenkins Setup (Optional)
-
-1. **Set up Jenkins pipeline** using the `Jenkinsfile` located in the `jenkins/` folder.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-You can adjust this based on additional specifics or changes in your project. Let me know if you'd like to add anything else!
