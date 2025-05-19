@@ -12,7 +12,14 @@ import java.util.List;
 /**
  * @author Simpson Alfred
  */
-@CrossOrigin("http://localhost:3000") //allowing client application to consume the backed
+
+// Use this for local development when frontend runs on localhost:3000
+// @CrossOrigin("http://localhost:3000") 
+
+// Use this for Kubernetes or dynamic port environments where frontend origin might change
+@CrossOrigin(origins = "*") // Allow all origins (not recommended for production)
+
+
 @RestController
 @RequestMapping("/students")
 @RequiredArgsConstructor
